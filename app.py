@@ -252,51 +252,7 @@ class RagEngine:
             p = hit.passage
             for quote, truncated in pick_quotes(q, p.text, s.max_quote_chars):
                 citations.append(Citation(passage_id=p.id, chapter=p.chapter, section=p.section, page=p.page, quote=quote, truncated=truncated, source_url=p.source_url, effective_from=p.effective_from, superseded_on=p.superseded_on, amended_by=p.amended_by))
-              if not chosen: 
-        chosen = [0] if sentences else []
-        
-    quotes: list[tuple[str, bool]] = []
-    for i in sorted(chosen):
-        s = sentences[i]
-        if len(s) > max_chars:
-            quotes.append((s[:max_chars], True))
-        else:
-            quotes.append((s, False))
-    return quotes
-
-class RagEngine:
-    def __init__(self, passages: list[Passage], settings: Settings) -> None:
-        self.settings = settings
-        self.passages = list(passages)
-        self.index = BM25Index(self.passages, self.settings)
-
-    def _refuse(self, reason: RefusalReason, message: str, on: date) -> AskResponse:
-        return AskResponse(status="refused", reason=reason, message=message, transaction_date=on)
-
-    def ask(self, question: str, on: date) -> AskResponse:
-        s = self.settings
-        try:
-            q = sanitize_question(question, s.max_question_chars)
-        except InvalidInput as e:
-            return self._refuse("invalid_input", str(e), on)
-
-        if contains_personal_data(q):
-            return self._refuse("personal_data", "Your question contains sensitive personal identifiers (CNIC/Email/Account Details). Please rephrase in general terms.", on)
-
-        if on > date.today():
-            return self._refuse("future_date", "The transaction date is currently in the future.", on)
-
-        if check_coverage(on, s.coverage_start) is Coverage.BEFORE_COVERAGE:
-            return self._refuse("before_coverage", f"The loaded database text index only covers items starting from {s.coverage_start.isoformat()}.", on)
-
-        hits = self.index.search(q, on)
-        citations: list[Citation] = []
-        notices: list[str] = []
-        for hit in hits:
-            p = hit.passage
-            for quote, truncated in pick_quotes(q, p.text, s.max_quote_chars):
-                citations.append(Citation(passage_id=p.id, chapter=p.chapter, section=p.section, page=p.page, quote=quote, truncated=truncated, source_url=p.source_url, effective_from=p.effective_from, superseded_on=p.superseded_on, amended_by=p.amended_by))
-            if p.superseded_on is not None:
+                        if p.superseded_on is not None:
                 by = f" by {p.amended_by}" if p.amended_by else ""
                 notices.append(f"⚠️ Notice: {p.chapter} section {p.section} was subsequently amended{by} effective {p.superseded_on.isoformat()}. Displaying active state for chosen date.")
 
@@ -358,3 +314,4 @@ if st.button("Evaluate Query Timeline", type="primary"):
                     st.markdown('---')
                 for n in res.notices:
                     st.warning(n)
+
