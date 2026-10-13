@@ -252,7 +252,9 @@ class RagEngine:
             p = hit.passage
             for quote, truncated in pick_quotes(q, p.text, s.max_quote_chars):
                 citations.append(Citation(passage_id=p.id, chapter=p.chapter, section=p.section, page=p.page, quote=quote, truncated=truncated, source_url=p.source_url, effective_from=p.effective_from, superseded_on=p.superseded_on, amended_by=p.amended_by))
-            if p.superseded_on is not None:
+              if not chosen: 
+        chosen = [0] if sentences else []
+        
     quotes: list[tuple[str, bool]] = []
     for i in sorted(chosen):
         s = sentences[i]
@@ -350,9 +352,9 @@ if st.button("Evaluate Query Timeline", type="primary"):
             else:
                 st.markdown("### 📑 Unaltered Evidence Citations")
                 st.caption(res.message)
-                for c in res.get("citations", []):
+                for c in res.citations:
                     st.info(f"“ {c.quote} ”")
                     st.caption(f"📂 Chapter: {c.chapter} - Section: {c.section} - Page: {c.page or 'N/A'} (Enforceable: {c.effective_from} to {c.superseded_on or 'Present'})")
                     st.markdown('---')
-                for n in res.get("notices", []):
+                for n in res.notices:
                     st.warning(n)
