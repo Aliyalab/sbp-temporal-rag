@@ -1,8 +1,15 @@
 """Self-contained Serverless SBP Temporal RAG Engine for Cloud Deployment."""
 import streamlit as st
 from datetime import date
+import sys
+import os
 
-# Import your working core modules natively
+# 1. Force Streamlit Cloud to recognize local root paths manually
+root_path = os.path.dirname(os.path.abspath(__file__))
+if root_path not in sys.path:
+    sys.path.append(root_path)
+
+# 2. Import your working core modules natively
 from src.config import Settings
 from src.store import load_passages
 from src.engine import RagEngine
